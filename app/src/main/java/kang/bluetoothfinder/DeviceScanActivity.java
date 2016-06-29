@@ -374,5 +374,5 @@ public class DeviceScanActivity extends Activity {
 //        viewHolder.deviceAddress.setVisibility(View.GONE);
 //        viewHolder.deviceRssi.setVisibility(View.GONE);
 
-
+//TestCommit
 
