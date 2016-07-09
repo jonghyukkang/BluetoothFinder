@@ -13,27 +13,48 @@ import android.view.View;
 public class FirstBarView extends View {
     private Paint mPaint1;
     private int mRssinum;
+    private int id;
 
-    public FirstBarView(Context context, int num){
+    public FirstBarView(Context context, int num, int id){
         super(context);
-        init();
         this.mRssinum = num;
+        this.id = id;
     }
 
     public FirstBarView(Context context, AttributeSet attr){
         super(context, attr);
-        init();
-    }
-
-    public void init(){
-        mPaint1 = new Paint();
-        mPaint1.setColor(Color.RED);
-        mPaint1.setStyle(Paint.Style.FILL);
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
-        canvas.drawRect(150, mRssinum, 200, 800, mPaint1);
+
+        switch(id){
+            case 1 :
+                invalidate();
+                mPaint1 = new Paint();
+                mPaint1.setColor(Const.COLOR_ONE);
+                mPaint1.setStyle(Paint.Style.FILL);
+                canvas.drawRect(150, mRssinum, 200, 800, mPaint1);
+                break;
+
+            case 2 :
+                invalidate();
+                mPaint1 = new Paint();
+                mPaint1.setColor(Const.COLOR_TWO);
+                mPaint1.setStyle(Paint.Style.FILL);
+                canvas.drawRect(300, mRssinum, 350, 800, mPaint1);
+                break;
+
+            case 3 :
+                invalidate();
+                mPaint1 = new Paint();
+                mPaint1.setColor(Const.COLOR_THREE);
+                mPaint1.setStyle(Paint.Style.FILL);
+                canvas.drawRect(450, mRssinum, 500, 800, mPaint1);
+
+        }
     }
+
+
 }

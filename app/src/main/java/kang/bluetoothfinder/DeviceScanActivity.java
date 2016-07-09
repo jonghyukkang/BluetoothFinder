@@ -26,7 +26,9 @@ import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
 import android.os.Message;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -35,6 +37,7 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.FrameLayout;
 import android.widget.ListView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -47,24 +50,16 @@ import java.util.List;
  */
 public class DeviceScanActivity extends Activity {
     private static final int REQUEST_ENABLE_BT = 1;
-    private static final long SCAN_PERIOD = 10000;  // 10초동안 Scan
 
     private LeDeviceListAdapter mLeDeviceListAdapter;
+    private BarClass barClass;
     private BluetoothAdapter mBluetoothAdapter;
     private boolean mScanning;
-    private Handler mHandler;
     private BluetoothDevice mDeviceInfo;
     private ListView mList;
-    private FirstBarView mFirstbarView; // 첫번째 Device Rssi값에 따른 막대 그래프
-    private SecondBarView mSecondbarView;   // 두번째 Device Rssi값에 따른 막대 그래프
-    private ThirdBarView mThirdbarView; // 세번째 Device Rssi값에 따른 막대 그래프
-    private FirstTextView mFirsttextView;
-    private SecondTextView mSecondtextView;
-    private ThirdTextView mThirdtextView;
-    private FrameLayout mFrameLayout;
-    private List<Integer> L_value1 = new ArrayList<Integer>();  // 첫번째 Device에 들어오는 Rssi값의 평균을 구하기 위한 Rssi 저장소
-    private List<Integer> L_value2 = new ArrayList<Integer>();  // 두번째 Device에 들어오는 Rssi값의 평균을 구하기 위한 Rssi 저장소
-    private List<Integer> L_value3 = new ArrayList<Integer>();  // 세번째 Device에 들어오는 Rssi값의 평균을 구하기 위한 Rssi 저장소
+    private FirstBarView mFirstbarView, mFirstbarView1, mFirstbarView2; // 첫번째 Device Rssi값에 따른 막대 그래프
+    private RelativeLayout mRelativeLayout;
+    private ArrayList<Integer> L_value1, L_value2, L_value3;
     private int mSum1, mSum2, mSum3;    // 각 자리 별 Rssi값의 합
     private int mAverage1, mAverage2, mAverage3;    // 각 자리 별 Rssi값의 평균값
 
@@ -73,80 +68,14 @@ public class DeviceScanActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main_view);
 
+        L_value1 = new ArrayList<Integer>();
+        L_value2 = new ArrayList<Integer>();
+        L_value3 = new ArrayList<Integer>();
+
         getActionBar().setTitle(R.string.title_devices);    //Title name
-        mFrameLayout = (FrameLayout)findViewById(R.id.llayout);
+        mRelativeLayout = (RelativeLayout) findViewById(R.id.llayout);
 
-        mHandler = new Handler(){
-            @Override
-            public void handleMessage(Message msg) {
-                switch(msg.what) {
-                    case 1 :                                            //Message가 1일 때
-                        L_value1.add(msg.arg1);                         //들어오는 Rssi 값을 L_value1에 저장
-                        if(L_value1.size()==30){                        //L_value1의 사이즈가 50이 되면
-                            for(int i=0;i<L_value1.size();i++){
-                                mSum1 += L_value1.get(i);               // 50개의 Rssi값을 더해 mSum1에 저장
-                                mAverage1 = mSum1 / L_value1.size();    // mSum1을 50으로 나눈 평균값을 mAverage1에 저장
-                            }
-                            mFrameLayout.removeView(mFirstbarView);
-                            mFrameLayout.removeView(mFirsttextView);
-                            if(mAverage1 >= - 91) {
-                                mFirstbarView = new FirstBarView(getApplicationContext(), Math.abs(mAverage1) * 10 - 122);// 평균값을 파라미터로 넘겨 첫번째 막대 객체 생성
-                                mFrameLayout.addView(mFirstbarView);        // Layout에 첫번째 막대 View add
-                            } else {
-                                mFirsttextView = new FirstTextView(getApplicationContext(), mAverage1);
-                                mFrameLayout.addView(mFirsttextView);
-                            }
-                            mSum1=0; mAverage1=0;                       // 50개의 평균값을 보내고 난 후에 다시 합과 평균값 초기화
-                            L_value1.clear();                           // L_value1값 클리어
-                        }
-                        break;
-
-                    case 2 :
-                        L_value2.add(msg.arg1);
-                        if(L_value2.size()==30){
-                            for(int i=0;i<L_value2.size();i++){
-                                mSum2 += L_value2.get(i);
-                                mAverage2 = mSum2 / L_value2.size();
-                            }
-                            mFrameLayout.removeView(mSecondbarView);
-                            mFrameLayout.removeView(mSecondtextView);
-                            if(mAverage2 >= -91) {
-                                mSecondbarView = new SecondBarView(getApplicationContext(), Math.abs(mAverage2) * 10 - 122);
-                                mFrameLayout.addView(mSecondbarView);
-                            } else {
-                                mSecondtextView = new SecondTextView(getApplicationContext(), mAverage2);
-                                mFrameLayout.addView(mSecondtextView);
-                            }
-                            mSum2=0; mAverage2=0;
-                            L_value2.clear();
-                        }
-                        break;
-
-                    case 3 :
-                        L_value3.add(msg.arg1);
-                        if(L_value3.size()==30){
-                            for(int i=0;i<L_value3.size();i++){
-                                mSum3 += L_value3.get(i);
-                                mAverage3 = mSum3 / L_value3.size();
-                            }
-                            mFrameLayout.removeView(mThirdbarView);
-                            mFrameLayout.removeView(mThirdtextView);
-                            if(mAverage3 >= -91) {
-                                mThirdbarView = new ThirdBarView(getApplicationContext(), Math.abs(mAverage3) * 10 - 122);
-                                mFrameLayout.addView(mThirdbarView);
-                            } else {
-                                mThirdtextView = new ThirdTextView(getApplicationContext(), mAverage3);
-                                mFrameLayout.addView(mThirdtextView);
-                            }
-                            mSum3=0; mAverage3=0;
-                            L_value3.clear();
-                        }
-                        break;
-                }
-            }
-        };
-
-        mList = (ListView)findViewById(R.id.mList);
+        mList = (ListView) findViewById(R.id.mList);
 
         //BluetoothLE 지원 가능한 device인지 체크, 아닐경우 Toast 띄우기
         if (!getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
@@ -165,6 +94,7 @@ public class DeviceScanActivity extends Activity {
         }
 
         scanLeDevice(true);
+        barClass = new BarClass();
     }
 
     @Override
@@ -198,16 +128,19 @@ public class DeviceScanActivity extends Activity {
         return true;
     }
 
-    public void InitiateValue(){  //Rssi값 평균치 구하기 관련 변수들 초기화 함수
-        L_value1.clear(); L_value2.clear(); L_value3.clear();
-        mSum1=0; mSum2=0; mSum3=0;
-        mAverage1=0; mAverage2=0; mAverage3=0;
-        mFrameLayout.removeView(mFirstbarView);
-        mFrameLayout.removeView(mFirsttextView);
-        mFrameLayout.removeView(mSecondbarView);
-        mFrameLayout.removeView(mSecondtextView);
-        mFrameLayout.removeView(mThirdbarView);
-        mFrameLayout.removeView(mThirdtextView);
+    public void InitiateValue() {  //Rssi값 평균치 구하기 관련 변수들 초기화 함수
+        L_value1.clear();
+        L_value2.clear();
+        L_value3.clear();
+        mSum1 = 0;
+        mSum2 = 0;
+        mSum3 = 0;
+        mAverage1 = 0;
+        mAverage2 = 0;
+        mAverage3 = 0;
+        mRelativeLayout.removeView(mFirstbarView);
+        mRelativeLayout.removeView(mFirstbarView1);
+        mRelativeLayout.removeView(mFirstbarView2);
     }
 
     @Override
@@ -220,10 +153,8 @@ public class DeviceScanActivity extends Activity {
                 startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
             }
         }
-
         mLeDeviceListAdapter = new LeDeviceListAdapter();
         mList.setAdapter(mLeDeviceListAdapter);
-
     }
 
     @Override
@@ -299,7 +230,7 @@ public class DeviceScanActivity extends Activity {
 
         @Override
         public View getView(int i, View convertView, ViewGroup viewGroup) {
-            ViewHolder viewHolder;
+            final ViewHolder viewHolder;
             if (convertView == null) {
                 convertView = mInflator.inflate(R.layout.listitem_device, null);
                 viewHolder = new ViewHolder();
@@ -312,40 +243,30 @@ public class DeviceScanActivity extends Activity {
             }
             final BluetoothDevice device = mLeDevices.get(i);
 
-                final String deviceName = device.getName();
-                if (deviceName != null && deviceName.length() > 0)
-                    viewHolder.deviceName.setText(deviceName);
-                else
-                    viewHolder.deviceName.setText(R.string.unknown_device);
-                viewHolder.deviceAddress.setText(" " + device.getAddress());
-                viewHolder.deviceRssi.setText("" + mRssiMap.get(device) + "dBm");
+            final String deviceName = device.getName();
+            if (deviceName != null && deviceName.length() > 0)
+                viewHolder.deviceName.setText(deviceName);
+            else
+                viewHolder.deviceName.setText(R.string.unknown_device);
+            viewHolder.deviceAddress.setText(" " + device.getAddress());
+            viewHolder.deviceRssi.setText("" + mRssiMap.get(device) + "dBm");
 
-                if (device.getAddress() == mLeDevices.get(0).getAddress()) {  //deviceAddress가 mLedevices 0번째 포지션의 Address가 같으면
-                    viewHolder.deviceAddress.setTextColor(Color.argb(255, 255, 0, 0)); //색상을 RED로 변경
-                    Message msg = Message.obtain(); //Message에 rssi값을 담아 보냄
-                    msg.what = 1;
-                    msg.arg1 = mRssiMap.get(device);
-                    mHandler.sendMessage(msg);
+            if (device.getAddress() == mLeDevices.get(0).getAddress()) {
+                viewHolder.deviceAddress.setTextColor(Const.COLOR_ONE);
+
+            } else {
+                if (device.getAddress() == mLeDevices.get(1).getAddress()) {
+                    viewHolder.deviceAddress.setTextColor(Const.COLOR_TWO);
                 } else {
-                    if (device.getAddress() == mLeDevices.get(1).getAddress()) {
-                        viewHolder.deviceAddress.setTextColor(Color.argb(255, 0, 150, 80));
-                        Message msg = Message.obtain();
-                        msg.what = 2;
-                        msg.arg1 = mRssiMap.get(device);
-                        mHandler.sendMessage(msg);
-                    } else {
-                        if (device.getAddress() == mLeDevices.get(2).getAddress()) {
-                            viewHolder.deviceAddress.setTextColor(Color.argb(255, 0, 0, 255));
-                            Message msg = Message.obtain();
-                            msg.what = 3;
-                            msg.arg1 = mRssiMap.get(device);
-                            mHandler.sendMessage(msg);
-                        }
+                    if (device.getAddress() == mLeDevices.get(2).getAddress()) {
+                        viewHolder.deviceAddress.setTextColor(Const.COLOR_THREE);
                     }
                 }
+            }
             return convertView;
         }
     }
+
 
     //BLE Scan CallbackMethod
     private BluetoothAdapter.LeScanCallback mLeScanCallback = new BluetoothAdapter.LeScanCallback() {
@@ -356,6 +277,7 @@ public class DeviceScanActivity extends Activity {
                 public void run() {
                     mDeviceInfo = device;
                     mLeDeviceListAdapter.addDevice(device, rssi);
+                    barClass.addDevices(device, rssi);
                     mLeDeviceListAdapter.notifyDataSetChanged();
                 }
             });
@@ -367,12 +289,87 @@ public class DeviceScanActivity extends Activity {
         TextView deviceAddress;
         TextView deviceRssi;
     }
+
+    private class BarClass {
+        private ArrayList<BluetoothDevice> mLeDevices = new ArrayList<>();
+        private HashMap<BluetoothDevice, Integer> mRssiMap = new HashMap<>();
+
+        public void addDevices(BluetoothDevice device, int rssi) {
+            if (!mLeDevices.contains(device)) {
+                mLeDevices.add(device);
+            }
+            mRssiMap.put(device, rssi);
+            bar();
+        }
+
+        public void bar() {
+            BluetoothDevice device = mLeDevices.get(0);
+            BarView(1, mRssiMap.get(device));
+
+            if(mLeDevices.size() > 1){
+                device = mLeDevices.get(1);
+                BarView(2, mRssiMap.get(device));
+
+                if(mLeDevices.size() > 2){
+                    device = mLeDevices.get(2);
+                    BarView(3, mRssiMap.get(device));
+                }
+            }
+        }
+    }
+
+    public void BarView(int id, int rssi) {
+        switch (id) {
+            case 1:
+                L_value1.add(rssi);
+                if (L_value1.size() == 30) {
+                    for (int j = 0; j < L_value1.size(); j++) {
+                        mSum1 += L_value1.get(j);
+                        mAverage1 = mSum1 / L_value1.size();
+                    }
+                    mRelativeLayout.removeView(mFirstbarView);
+                    mFirstbarView = new FirstBarView(getApplicationContext(), Math.abs(mAverage1) * 10 - 122, id);
+                    mRelativeLayout.addView(mFirstbarView);
+                    mSum1 = 0;
+                    mAverage1 = 0;
+                    L_value1.clear();
+                }
+                break;
+
+            case 2:
+                L_value2.add(rssi);
+                if (L_value2.size() == 30) {
+                    for (int j = 0; j < L_value2.size(); j++) {
+                        mSum2 += L_value2.get(j);
+                        mAverage2 = mSum2 / L_value2.size();
+                    }
+                    mRelativeLayout.removeView(mFirstbarView1);
+                    mFirstbarView1 = new FirstBarView(getApplicationContext(), Math.abs(mAverage2) * 10 - 122, id);
+                    mRelativeLayout.addView(mFirstbarView1);
+                    mSum2 = 0;
+                    mAverage2 = 0;
+                    L_value2.clear();
+                }
+                break;
+
+            case 3:
+                L_value3.add(rssi);
+                if (L_value3.size() == 30) {
+                    for (int j = 0; j < L_value3.size(); j++) {
+                        mSum3 += L_value3.get(j);
+                        mAverage3 = mSum3 / L_value3.size();
+                    }
+                    mRelativeLayout.removeView(mFirstbarView2);
+                    mFirstbarView2 = new FirstBarView(getApplicationContext(), Math.abs(mAverage3) * 10 - 122, id);
+                    mRelativeLayout.addView(mFirstbarView2);
+                    mSum3 = 0;
+                    mAverage3 = 0;
+                    L_value3.clear();
+                }
+                break;
+        }
+    }
 }
 
-//
-//viewHolder.deviceName.setText(R.string.unknown_device);
-//        viewHolder.deviceAddress.setVisibility(View.GONE);
-//        viewHolder.deviceRssi.setVisibility(View.GONE);
 
-//TestCommit
 
