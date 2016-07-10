@@ -15,6 +15,10 @@ public class FirstBarView extends View {
     private int mRssinum;
     private int id;
 
+    public FirstBarView(Context context){
+        super(context);
+    }
+
     public FirstBarView(Context context, int num, int id){
         super(context);
         this.mRssinum = num;
@@ -30,26 +34,23 @@ public class FirstBarView extends View {
         super.onDraw(canvas);
 
         switch(id){
-            case 1 :
-                invalidate();
+            case 0 :
                 mPaint1 = new Paint();
-                mPaint1.setColor(Const.COLOR_ONE);
+                mPaint1.setColor(Const.COLOR_RED);
                 mPaint1.setStyle(Paint.Style.FILL);
                 canvas.drawRect(150, mRssinum, 200, 800, mPaint1);
                 break;
 
-            case 2 :
-                invalidate();
+            case 1 :
                 mPaint1 = new Paint();
-                mPaint1.setColor(Const.COLOR_TWO);
+                mPaint1.setColor(Const.COLOR_GREEN);
                 mPaint1.setStyle(Paint.Style.FILL);
                 canvas.drawRect(300, mRssinum, 350, 800, mPaint1);
                 break;
 
-            case 3 :
-                invalidate();
+            case 2 :
                 mPaint1 = new Paint();
-                mPaint1.setColor(Const.COLOR_THREE);
+                mPaint1.setColor(Const.COLOR_BLUE);
                 mPaint1.setStyle(Paint.Style.FILL);
                 canvas.drawRect(450, mRssinum, 500, 800, mPaint1);
 
