@@ -52,21 +52,19 @@ import java.util.TimerTask;
  */
 public class DeviceScanActivity extends Activity {
     private static final int REQUEST_ENABLE_BT = 1;
-
     private LeDeviceListAdapter mLeDeviceListAdapter;
-    private BarClass barClass;
     private BluetoothAdapter mBluetoothAdapter;
     private boolean mScanning;
     private BluetoothDevice mDeviceInfo;
     private ListView mList;
-    private FirstBarView mFirstbarView, mFirstbarView1, mFirstbarView2;// 첫번째 Device Rssi값에 따른 막대 그래프
+    private FirstBarView mFirstbarView, mFirstbarView1, mFirstbarView2;
     private RelativeLayout mRelativeLayout;
     private ArrayList<Integer> L_value1 = new ArrayList<>();
     private ArrayList<Integer> L_value2 = new ArrayList<>();
     private ArrayList<Integer> L_value3 = new ArrayList<>();
-    private Handler mHandler;
     private Timer mTimer;
     private TimerTask mTask;
+
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -74,14 +72,9 @@ public class DeviceScanActivity extends Activity {
         setContentView(R.layout.main_view);
 
         getActionBar().setTitle(R.string.title_devices);
-        barClass = new BarClass();
-        mHandler = new Handler();
-
         mRelativeLayout = (RelativeLayout) findViewById(R.id.llayout);
-
         mList = (ListView) findViewById(R.id.mList);
 
-        //BluetoothLE 지원 가능한 device인지 체크, 아닐경우 Toast 띄우기
         if (!getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
             Toast.makeText(this, R.string.ble_not_supported, Toast.LENGTH_SHORT).show();
             finish();
@@ -168,6 +161,7 @@ public class DeviceScanActivity extends Activity {
     protected void onPause() {
         super.onPause();
         scanLeDevice(false); //Pause()상태일 때 스캔 정지
+        mTimer.cancel();
         mLeDeviceListAdapter.clear();
     }
 
@@ -190,8 +184,8 @@ public class DeviceScanActivity extends Activity {
                     });
                 }
             };
+            mTimer.schedule(mTask, 1000, Const.ONE_SEC);
 
-            mTimer.schedule(mTask, 100, Const.ONE_SEC);
             mScanning = true;
             mBluetoothAdapter.startLeScan(mLeScanCallback);
         } else {
@@ -201,7 +195,6 @@ public class DeviceScanActivity extends Activity {
         }
         invalidateOptionsMenu();
     }
-
 
     private class LeDeviceListAdapter extends BaseAdapter {
         private ArrayList<BluetoothDevice> mLeDevices;
@@ -218,7 +211,23 @@ public class DeviceScanActivity extends Activity {
             if (!mLeDevices.contains(device)) { // device를 포함하지 않을 시 추가
                 mLeDevices.add(device);
             }
-            mRssiMap.put(device, rssi); // hashmap에 device와 rssi값 put
+            mRssiMap.put(device,rssi);
+            bar();
+        }
+
+        public void bar() {
+            BluetoothDevice device = mLeDevices.get(0);
+            L_value1.add(mRssiMap.get(device));
+
+            if (mLeDevices.size() > 1) {
+                device = mLeDevices.get(1);
+                L_value2.add(mRssiMap.get(device));
+
+                if (mLeDevices.size() > 2) {
+                    device = mLeDevices.get(2);
+                    L_value3.add(mRssiMap.get(device));
+                }
+            }
         }
 
         public BluetoothDevice getDevice(int position) {
@@ -247,21 +256,22 @@ public class DeviceScanActivity extends Activity {
         @Override
         public View getView(int i, View convertView, ViewGroup viewGroup) {
             TextView deviceAddress, deviceName, deviceRssi;
-
+            Log.d("getView", "getView");
             convertView = mInflator.inflate(R.layout.listitem_device, null);
             deviceAddress = (TextView) convertView.findViewById(R.id.device_address);
             deviceName = (TextView) convertView.findViewById(R.id.device_name);
             deviceRssi = (TextView) convertView.findViewById(R.id.device_rssi);
 
             BluetoothDevice device = mLeDevices.get(i);
+
             String dName = device.getName();
 
             if (dName != null && dName.length() > 0)
                 deviceName.setText(dName);
             else
                 deviceName.setText(R.string.unknown_device);
-
             deviceAddress.setText(" " + device.getAddress());
+
             deviceRssi.setText("" + mRssiMap.get(device) + "dBm");
 
             if (device.getAddress() == mLeDevices.get(0).getAddress()) {
@@ -279,7 +289,6 @@ public class DeviceScanActivity extends Activity {
         }
     }
 
-    //BLE Scan CallbackMethod
     private BluetoothAdapter.LeScanCallback mLeScanCallback = new BluetoothAdapter.LeScanCallback() {
         @Override
         public void onLeScan(final BluetoothDevice device, final int rssi, byte[] scanRecord) {
@@ -288,41 +297,12 @@ public class DeviceScanActivity extends Activity {
                 public void run() {
                     mDeviceInfo = device;
                     mLeDeviceListAdapter.addDevice(device, rssi);
-                    barClass.addDevices(device, rssi);
-                    mLeDeviceListAdapter.notifyDataSetChanged();
                 }
             });
         }
     };
 
-    private class BarClass {
-        private ArrayList<BluetoothDevice> mLeDevices = new ArrayList<>();
-        private HashMap<BluetoothDevice, Integer> mRssiMap = new HashMap<>();
-
-        public void addDevices(BluetoothDevice device, int rssi) {
-            if (!mLeDevices.contains(device)) {
-                mLeDevices.add(device);
-            }
-            mRssiMap.put(device, rssi);
-            bar();
-        }
-
-        public void bar() {
-            BluetoothDevice device = mLeDevices.get(0);
-            L_value1.add(mRssiMap.get(device));
-
-            if (mLeDevices.size() > 1) {
-                device = mLeDevices.get(1);
-                L_value2.add(mRssiMap.get(device));
-
-                if (mLeDevices.size() > 2) {
-                    device = mLeDevices.get(2);
-                    L_value3.add(mRssiMap.get(device));
-                }
-            }
-        }
-    }
-
+    // 1초마다 sendView()가 호출이 되면,
     public void sendView(ArrayList<Integer> value, int id) {
         int sum = 0, average;
         try {
@@ -355,12 +335,11 @@ public class DeviceScanActivity extends Activity {
                 mRelativeLayout.addView(mFirstbarView2);
                 value.clear();
             }
-
+            mLeDeviceListAdapter.notifyDataSetChanged();
         } catch (ArithmeticException e) {
             Log.d("value", "" + value.size());
         }
     }
-
 
     @Override
     protected void onDestroy() {
