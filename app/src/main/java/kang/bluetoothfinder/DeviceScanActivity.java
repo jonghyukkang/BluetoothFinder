@@ -302,7 +302,6 @@ public class DeviceScanActivity extends Activity {
         }
     };
 
-    // 1초마다 sendView()가 호출이 되면,
     public void sendView(ArrayList<Integer> value, int id) {
         int sum = 0, average;
         try {
@@ -315,7 +314,7 @@ public class DeviceScanActivity extends Activity {
             if (id == 0) {
                 if (mFirstbarView != null)
                     mRelativeLayout.removeView(mFirstbarView);
-                mFirstbarView = new FirstBarView(getApplicationContext(), Math.abs(average) * 10 - 122, id);
+                mFirstbarView = new FirstBarView(getApplicationContext(), Math.abs(average) * 20 - 240, id);
                 mRelativeLayout.addView(mFirstbarView);
                 value.clear();
             }
@@ -323,7 +322,7 @@ public class DeviceScanActivity extends Activity {
             if (id == 1) {
                 if (mFirstbarView1 != null)
                     mRelativeLayout.removeView(mFirstbarView1);
-                mFirstbarView1 = new FirstBarView(getApplicationContext(), Math.abs(average) * 10 - 122, id);
+                mFirstbarView1 = new FirstBarView(getApplicationContext(), Math.abs(average) * 20 - 240, id);
                 mRelativeLayout.addView(mFirstbarView1);
                 value.clear();
             }
@@ -331,7 +330,7 @@ public class DeviceScanActivity extends Activity {
             if (id == 2) {
                 if (mFirstbarView2 != null)
                     mRelativeLayout.removeView(mFirstbarView2);
-                mFirstbarView2 = new FirstBarView(getApplicationContext(), Math.abs(average) * 10 - 122, id);
+                mFirstbarView2 = new FirstBarView(getApplicationContext(), Math.abs(average) * 20 - 240, id);
                 mRelativeLayout.addView(mFirstbarView2);
                 value.clear();
             }

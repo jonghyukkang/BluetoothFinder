@@ -5,6 +5,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.util.AttributeSet;
+import android.util.DisplayMetrics;
 import android.view.View;
 
 /**
@@ -30,6 +31,9 @@ public class BarBackgroundView extends View {
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
 
+        float width = getMeasuredWidth();
+        float height = getMeasuredHeight();
+
         // Graph Line x, y축 그리기
 
         mPaintLine = new Paint();
@@ -37,8 +41,8 @@ public class BarBackgroundView extends View {
         mPaintLine.setStyle(Paint.Style.STROKE);
         mPaintLine.setStrokeWidth(3);
 
-        canvas.drawLine(80, 150, 80, 800, mPaintLine);
-        canvas.drawLine(80, 800, 700, 800, mPaintLine);
+        canvas.drawLine(width/9, height/6, width/9, height-74, mPaintLine);
+        canvas.drawLine(width/9, height-74, width-20, height-74, mPaintLine);
 
         // Graph Line 수치선 그리기
 
@@ -46,12 +50,13 @@ public class BarBackgroundView extends View {
         mPaintLineSmall.setColor(Color.LTGRAY);
         mPaintLineSmall.setStyle(Paint.Style.STROKE);
         mPaintLineSmall.setStrokeWidth(1);
-        canvas.drawLine(80, 180, 700, 180, mPaintLineSmall);
-        canvas.drawLine(80, 280, 700, 280, mPaintLineSmall);
-        canvas.drawLine(80, 380, 700, 380, mPaintLineSmall);
-        canvas.drawLine(80, 480, 700, 480, mPaintLineSmall);
-        canvas.drawLine(80, 580, 700, 580, mPaintLineSmall);
-        canvas.drawLine(80, 680, 700, 680, mPaintLineSmall);
+        canvas.drawLine(width/9, (float)(height/4.9), width-20, (float)(height/4.9), mPaintLineSmall);
+        canvas.drawLine(width/9, (float)(height/3.1), width-20, (float)(height/3.1), mPaintLineSmall);
+        canvas.drawLine(width/9, (float)(height/2.3), width-20, (float)(height/2.3), mPaintLineSmall);
+        canvas.drawLine(width/9, (float)(height/1.8), width-20, (float)(height/1.8), mPaintLineSmall);
+        canvas.drawLine(width/9, (float)(height/1.5), width-20, (float)(height/1.5), mPaintLineSmall);
+        canvas.drawLine(width/9, (float)(height/1.28), width-20, (float)(height/1.28), mPaintLineSmall);
+        canvas.drawLine(width/9, (float)(height/1.11), width-20, (float)(height/1.11), mPaintLineSmall);
 
         // Graph y축 수치값 그리기
 
@@ -60,13 +65,13 @@ public class BarBackgroundView extends View {
         mPaintText.setTextSize(30);
 
         String[] str1 = new String[]{"-30", "-40", "-50", "-60", "-70", "-80", "-90"};
-        canvas.drawText(str1[0], 25, 190, mPaintText);
-        canvas.drawText(str1[1], 25, 290, mPaintText);
-        canvas.drawText(str1[2], 25, 390, mPaintText);
-        canvas.drawText(str1[3], 25, 490, mPaintText);
-        canvas.drawText(str1[4], 25, 590, mPaintText);
-        canvas.drawText(str1[5], 25, 690, mPaintText);
-        canvas.drawText(str1[6], 25, 790, mPaintText);
+        canvas.drawText(str1[0], (width/29), (float)(height/4.7), mPaintText);
+        canvas.drawText(str1[1], (width/29), (float)(height/3.0), mPaintText);
+        canvas.drawText(str1[2], (width/29), (float)(height/2.25), mPaintText);
+        canvas.drawText(str1[3], (width/29), (float)(height/1.77), mPaintText);
+        canvas.drawText(str1[4], (width/29), (float)(height/1.48), mPaintText);
+        canvas.drawText(str1[5], (width/29), (float)(height/1.27), mPaintText);
+        canvas.drawText(str1[6], (width/29), (float)(height/1.1), mPaintText);
 
     }
 }
