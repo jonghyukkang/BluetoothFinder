@@ -50,10 +50,11 @@ public class BarBackgroundView extends View {
         mPaintLineSmall.setColor(Color.LTGRAY);
         mPaintLineSmall.setStyle(Paint.Style.STROKE);
         mPaintLineSmall.setStrokeWidth(1);
+
         canvas.drawLine(width/9, (float)(height/4.9), width-20, (float)(height/4.9), mPaintLineSmall);
-        canvas.drawLine(width/9, (float)(height/3.1), width-20, (float)(height/3.1), mPaintLineSmall);
+        canvas.drawLine(width/9, (float)(height/3.19), width-20, (float)(height/3.19), mPaintLineSmall);
         canvas.drawLine(width/9, (float)(height/2.3), width-20, (float)(height/2.3), mPaintLineSmall);
-        canvas.drawLine(width/9, (float)(height/1.8), width-20, (float)(height/1.8), mPaintLineSmall);
+        canvas.drawLine(width/9, (float)(height/1.82), width-20, (float)(height/1.82), mPaintLineSmall);
         canvas.drawLine(width/9, (float)(height/1.5), width-20, (float)(height/1.5), mPaintLineSmall);
         canvas.drawLine(width/9, (float)(height/1.28), width-20, (float)(height/1.28), mPaintLineSmall);
         canvas.drawLine(width/9, (float)(height/1.11), width-20, (float)(height/1.11), mPaintLineSmall);
@@ -62,7 +63,7 @@ public class BarBackgroundView extends View {
 
         mPaintText = new Paint();
         mPaintText.setColor(Color.BLACK);
-        mPaintText.setTextSize(30);
+        mPaintText.setTextSize(50);
 
         String[] str1 = new String[]{"-30", "-40", "-50", "-60", "-70", "-80", "-90"};
         canvas.drawText(str1[0], (width/29), (float)(height/4.7), mPaintText);

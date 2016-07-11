@@ -19,6 +19,7 @@
 
     <!-- Activity themes -->
     <style name="Theme.Base" parent="android:Theme.Material.Light">
+        <item name="android:background">@android:color/holo_blue_dark</item>
     </style>
 
 </resources>

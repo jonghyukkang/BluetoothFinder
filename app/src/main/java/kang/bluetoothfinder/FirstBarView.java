@@ -37,14 +37,16 @@ public class FirstBarView extends View {
         float height = getMeasuredHeight();
 
         switch (id) {
+
             case 0:
                 mPaint1.setColor(Const.COLOR_RED);
                 mPaint1.setStyle(Paint.Style.FILL);
+                mPaint1.setTextSize(50);
+                int prevRssinum = (mRssinum + 260) / 20;
                 if (mRssinum < 1600) {
                     canvas.drawRect((float)(width/4.8), mRssinum, (float)(width/3.6), height-74, mPaint1);
+                    canvas.drawText("-" + String.valueOf(prevRssinum), (float)(width/4.8), mRssinum - 30, mPaint1);
                 } else {
-                    mPaint1.setTextSize(40);
-                    int prevRssinum = (mRssinum + 120) / 10;
                     canvas.drawText("-" + String.valueOf(prevRssinum), (float)(width/4.5), (float)(height/1.8), mPaint1);
                 }
                 break;
@@ -52,24 +54,26 @@ public class FirstBarView extends View {
             case 1:
                 mPaint1.setColor(Const.COLOR_GREEN);
                 mPaint1.setStyle(Paint.Style.FILL);
+                mPaint1.setTextSize(50);
+                int prevRssinum1 = (mRssinum + 260) / 20;
                 if (mRssinum < 1600) {
                     canvas.drawRect((float)(width/2.4), mRssinum, (float)(width/2.05), height-74, mPaint1);
+                    canvas.drawText("-" + String.valueOf(prevRssinum1), (float)(width/2.4), mRssinum - 30, mPaint1);
                 } else {
-                    mPaint1.setTextSize(40);
-                    int prevRssinum = (mRssinum + 120) / 10;
-                    canvas.drawText("-" + String.valueOf(prevRssinum), (float)(width/2.3), (float)(height/1.8), mPaint1);
+                    canvas.drawText("-" + String.valueOf(prevRssinum1), (float)(width/2.3), (float)(height/1.8), mPaint1);
                 }
                 break;
 
             case 2:
                 mPaint1.setColor(Const.COLOR_BLUE);
                 mPaint1.setStyle(Paint.Style.FILL);
+                mPaint1.setTextSize(50);
+                int prevRssinum2 = (mRssinum + 260) / 20;
                 if (mRssinum < 1600) {
                     canvas.drawRect((float)(width/1.6), mRssinum, (float)(width/1.44), height-74, mPaint1);
+                    canvas.drawText("-" + String.valueOf(prevRssinum2), (float)(width/1.6), mRssinum - 30, mPaint1);
                 } else {
-                    mPaint1.setTextSize(40);
-                    int prevRssinum = (mRssinum + 122) / 10;
-                    canvas.drawText("-" + String.valueOf(prevRssinum), (float)(width/1.6), (float)(height/1.8), mPaint1);
+                    canvas.drawText("-" + String.valueOf(prevRssinum2), (float)(width/1.6), (float)(height/1.8), mPaint1);
                 }
                 break;
         }
