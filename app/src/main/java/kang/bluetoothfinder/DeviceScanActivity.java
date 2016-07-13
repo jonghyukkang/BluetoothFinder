@@ -23,11 +23,8 @@ import android.bluetooth.BluetoothManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.graphics.Color;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
-import android.os.Message;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -35,7 +32,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
-import android.widget.FrameLayout;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -43,7 +39,6 @@ import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -57,14 +52,14 @@ public class DeviceScanActivity extends Activity {
     private boolean mScanning;
     private BluetoothDevice mDeviceInfo;
     private ListView mList;
-    private FirstBarView mFirstbarView, mFirstbarView1, mFirstbarView2;
     private RelativeLayout mRelativeLayout;
-    private ArrayList<Integer> L_value1 = new ArrayList<>();
-    private ArrayList<Integer> L_value2 = new ArrayList<>();
-    private ArrayList<Integer> L_value3 = new ArrayList<>();
+    private BarView mFirst_barView, mSecond_barView, mThird_barView;
+    public static ArrayList<Integer> L_value1 = new ArrayList<>();
+    public static ArrayList<Integer> L_value2 = new ArrayList<>();
+    public static ArrayList<Integer> L_value3 = new ArrayList<>();
     private Timer mTimer;
     private TimerTask mTask;
-
+    private float width, height;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -89,6 +84,11 @@ public class DeviceScanActivity extends Activity {
             finish();
             return;
         }
+
+        DisplayMetrics dm = new DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getMetrics(dm);
+        width = dm.widthPixels;
+        height = dm.heightPixels;
 
         scanLeDevice(true);
     }
@@ -128,9 +128,9 @@ public class DeviceScanActivity extends Activity {
         L_value1.clear();
         L_value2.clear();
         L_value3.clear();
-        mRelativeLayout.removeView(mFirstbarView);
-        mRelativeLayout.removeView(mFirstbarView1);
-        mRelativeLayout.removeView(mFirstbarView2);
+        mRelativeLayout.removeView(mFirst_barView);
+        mRelativeLayout.removeView(mSecond_barView);
+        mRelativeLayout.removeView(mThird_barView);
     }
 
     @Override
@@ -143,7 +143,7 @@ public class DeviceScanActivity extends Activity {
                 startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
             }
         }
-        mLeDeviceListAdapter = new LeDeviceListAdapter();
+        mLeDeviceListAdapter = new LeDeviceListAdapter(this);
         mList.setAdapter(mLeDeviceListAdapter);
     }
 
@@ -165,6 +165,7 @@ public class DeviceScanActivity extends Activity {
         mLeDeviceListAdapter.clear();
     }
 
+
     private void scanLeDevice(final boolean enable) {
         if (enable) {
             mTimer = new Timer();
@@ -175,11 +176,11 @@ public class DeviceScanActivity extends Activity {
                         @Override
                         public void run() {
                             if (L_value1 != null)
-                                sendView(L_value1, 0);
+                                sendView(mFirst_barView, L_value1, (float) (width / 4.8), (float) (width / 3.6), height - 918, Const.COLOR_DARKBLUE);
                             if (L_value2 != null)
-                                sendView(L_value2, 1);
+                                sendView(mSecond_barView, L_value2, (float) (width / 2.4), (float) (width / 2.05), height - 918, Const.COLOR_LIGHTBLUE);
                             if (L_value3 != null)
-                                sendView(L_value3, 2);
+                                sendView(mThird_barView, L_value3, (float) (width / 1.6), (float) (width / 1.44), height - 918, Const.COLOR_ORANGEWHITE);
                         }
                     });
                 }
@@ -196,99 +197,6 @@ public class DeviceScanActivity extends Activity {
         invalidateOptionsMenu();
     }
 
-    private class LeDeviceListAdapter extends BaseAdapter {
-        private ArrayList<BluetoothDevice> mLeDevices;
-        private LayoutInflater mInflator;
-        private HashMap<BluetoothDevice, Integer> mRssiMap = new HashMap<BluetoothDevice, Integer>();
-
-        public LeDeviceListAdapter() {
-            super();
-            mLeDevices = new ArrayList<BluetoothDevice>();
-            mInflator = DeviceScanActivity.this.getLayoutInflater();
-        }
-
-        public void addDevice(BluetoothDevice device, int rssi) {
-            if (!mLeDevices.contains(device)) { // device를 포함하지 않을 시 추가
-                mLeDevices.add(device);
-            }
-            mRssiMap.put(device,rssi);
-            bar();
-        }
-
-        public void bar() {
-            BluetoothDevice device = mLeDevices.get(0);
-            L_value1.add(mRssiMap.get(device));
-
-            if (mLeDevices.size() > 1) {
-                device = mLeDevices.get(1);
-                L_value2.add(mRssiMap.get(device));
-
-                if (mLeDevices.size() > 2) {
-                    device = mLeDevices.get(2);
-                    L_value3.add(mRssiMap.get(device));
-                }
-            }
-        }
-
-        public BluetoothDevice getDevice(int position) {
-            return mLeDevices.get(position);
-        }
-
-        public void clear() {
-            mLeDevices.clear();
-        }
-
-        @Override
-        public int getCount() {
-            return mLeDevices.size();
-        }
-
-        @Override
-        public Object getItem(int i) {
-            return mLeDevices.get(i);
-        }
-
-        @Override
-        public long getItemId(int i) {
-            return i;
-        }
-
-        @Override
-        public View getView(int i, View convertView, ViewGroup viewGroup) {
-            TextView deviceAddress, deviceName, deviceRssi;
-            Log.d("getView", "getView");
-            convertView = mInflator.inflate(R.layout.listitem_device, null);
-            deviceAddress = (TextView) convertView.findViewById(R.id.device_address);
-            deviceName = (TextView) convertView.findViewById(R.id.device_name);
-            deviceRssi = (TextView) convertView.findViewById(R.id.device_rssi);
-
-            BluetoothDevice device = mLeDevices.get(i);
-
-            String dName = device.getName();
-
-            if (dName != null && dName.length() > 0)
-                deviceName.setText(dName);
-            else
-                deviceName.setText(R.string.unknown_device);
-            deviceAddress.setText(" " + device.getAddress());
-
-            deviceRssi.setText("" + mRssiMap.get(device) + "dBm");
-
-            if (device.getAddress() == mLeDevices.get(0).getAddress()) {
-                deviceAddress.setTextColor(Const.COLOR_RED);
-            } else {
-                if (device.getAddress() == mLeDevices.get(1).getAddress()) {
-                    deviceAddress.setTextColor(Const.COLOR_GREEN);
-                } else {
-                    if (device.getAddress() == mLeDevices.get(2).getAddress()) {
-                        deviceAddress.setTextColor(Const.COLOR_BLUE);
-                    }
-                }
-            }
-            return convertView;
-        }
-    }
-
     private BluetoothAdapter.LeScanCallback mLeScanCallback = new BluetoothAdapter.LeScanCallback() {
         @Override
         public void onLeScan(final BluetoothDevice device, final int rssi, byte[] scanRecord) {
@@ -302,7 +210,7 @@ public class DeviceScanActivity extends Activity {
         }
     };
 
-    public void sendView(ArrayList<Integer> value, int id) {
+    public void sendView(BarView barView, ArrayList<Integer> value, float left, float right, float bottom, int color) {
         int sum = 0, average;
         try {
             for (int i = 0; i < value.size(); i++) {
@@ -311,30 +219,29 @@ public class DeviceScanActivity extends Activity {
             average = sum / value.size();
             Log.d("tag", "size : " + value.size() + "  sum : " + sum + "  average : " + average);
 
-            if (id == 0) {
-                if (mFirstbarView != null)
-                    mRelativeLayout.removeView(mFirstbarView);
-                mFirstbarView = new FirstBarView(getApplicationContext(), Math.abs(average) * 20 - 260, id);
-                mRelativeLayout.addView(mFirstbarView);
+            if (barView == mFirst_barView) {
+                mRelativeLayout.removeView(mFirst_barView);
+                mFirst_barView = new BarView(this, Math.abs(average) * 20 - 260, left, right, bottom, color);
+                mRelativeLayout.addView(mFirst_barView);
                 value.clear();
             }
 
-            if (id == 1) {
-                if (mFirstbarView1 != null)
-                    mRelativeLayout.removeView(mFirstbarView1);
-                mFirstbarView1 = new FirstBarView(getApplicationContext(), Math.abs(average) * 20 - 260, id);
-                mRelativeLayout.addView(mFirstbarView1);
+            if (barView == mSecond_barView) {
+                mRelativeLayout.removeView(mSecond_barView);
+                mSecond_barView = new BarView(this, Math.abs(average) * 20 - 260, left, right, bottom, color);
+                mRelativeLayout.addView(mSecond_barView);
                 value.clear();
             }
 
-            if (id == 2) {
-                if (mFirstbarView2 != null)
-                    mRelativeLayout.removeView(mFirstbarView2);
-                mFirstbarView2 = new FirstBarView(getApplicationContext(), Math.abs(average) * 20 - 260, id);
-                mRelativeLayout.addView(mFirstbarView2);
+            if (barView == mThird_barView) {
+                mRelativeLayout.removeView(mThird_barView);
+                mThird_barView = new BarView(this, Math.abs(average) * 20 - 260, left, right, bottom, color);
+                mRelativeLayout.addView(mThird_barView);
                 value.clear();
             }
+
             mLeDeviceListAdapter.notifyDataSetChanged();
+
         } catch (ArithmeticException e) {
             Log.d("value", "" + value.size());
         }
